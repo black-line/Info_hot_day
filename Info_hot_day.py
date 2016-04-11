@@ -217,7 +217,7 @@ def main():
     getDate = datetime.datetime.strptime(getDate, "%Y-%m-%d").date()
     while i < num:
         L = ['时事','民生','财富','科技','创业','汽车','楼市','职场','教育','学术','政务','企业']
-        L = ['企业']
+#        L = ['企业']
         for rank_name in L:
             date = (getDate + datetime.timedelta(days=-i))
 

@@ -143,7 +143,12 @@ def get_date():
     inner_content = ori_content['value']['WEIXIN_CAL_DAY'][:10]
     return inner_content
 
+
 def store_to_db(content):
+
+    for x in range(len(content)):
+        if content[x].get('summary',-1) == -1:
+            content[x]['summary'] = None
 
     # sql_create, sql_insert
     table_name = "Info_hot_day"
@@ -157,10 +162,9 @@ def store_to_db(content):
         sii += "content[index]['%s']," % sort_content[i][0]
         i += 1
 
-    si = sii[0:(len(sii)-1)].replace("content[index]['summary'],",'')
-    if si != sii:
-        count -= 1
-    sc = sc[0:(len(sc)-1)].replace('summary TEXT,','')
+    si = sii[0:(len(sii)-1)]
+
+    sc = sc[0:(len(sc)-1)]
     s = "?,"*count
     s = s[0:(len(s)-1)]
     sc = re.sub(",id TEXT",",id TEXT PRIMARY KEY NOT NULL",sc)

@@ -12,15 +12,8 @@ import re
 import time
 
 
+def get_content(rank_name_group = '资讯',rank_name = '时事',date = '2016/04/11'):
 
-def get_content(rank_name = '时事',date = '2016/04/11'):
-    # modifiable data
-
-    rank_name_group = '资讯'
-
-    #data
-#    now = datetime.datetime.now()
-#    date = (now + datetime.timedelta(days = -2)).date()
     start = date
     end = date
 
@@ -44,14 +37,13 @@ def get_content(rank_name = '时事',date = '2016/04/11'):
         'Accept-Language': 'zh-CN,zh;q=0.8,en-US;q=0.6,en;q=0.4'
     }
 
-
     # set nance (0,1,2,3,4,5,6,7,8,9,a,b,c,d,e,f)9 of 16
     nonce = '012345678'
 
     # set xyz /*! xdnphb linux-grunt-xdnphb-copyright 2016-03-22 */
     appBase = '/xdnphb'
     urlBase = appBase+'/'
-    xyz_str = urlBase + 'list/day/article?AppKey=joker&end=%s&rank_name=%s&rank_name_group=资讯&start=%s' % (end, rank_name, start)
+    xyz_str = urlBase + 'list/day/article?AppKey=joker&end=%s&rank_name=%s&rank_name_group=%s&start=%s' % (end, rank_name, rank_name_group, start)
     xyz = hashlib.md5((xyz_str+'&nonce='+nonce).encode()).hexdigest()
 
     # deal with form data
@@ -82,16 +74,11 @@ def get_content(rank_name = '时事',date = '2016/04/11'):
 
     ori_content = json.loads(data)
     inner_content = ori_content['value']
-    print('正在获取 '+date.__str__()+' 的数据')
+    print('正在获取 '+date.__str__()+' 的 ' + rank_name_group +' 分类下的 '+rank_name+' 数据')
     return inner_content
 
 
 def get_date():
-    # modifiable data
-    rank_name = '时事'
-    rank_name_group = '资讯'
-
-#    url_xhr = "http://www.newrank.cn/xdnphb/list/day/article"
     url_xhr = "http://www.newrank.cn/xdnphb/list/getDate"
     req = urllib.request.Request(url_xhr)
 
@@ -110,7 +97,6 @@ def get_date():
         'Accept-Encoding': 'gzip, deflate',
         'Accept-Language': 'zh-CN,zh;q=0.8,en-US;q=0.6,en;q=0.4'
     }
-
 
     # set nance (0,1,2,3,4,5,6,7,8,9,a,b,c,d,e,f)9 of 16
     nonce = '012345678'
@@ -144,14 +130,13 @@ def get_date():
     return inner_content
 
 
-def store_to_db(content):
+def store_to_db(content,table_name):
 
     for x in range(len(content)):
         if content[x].get('summary',-1) == -1:
             content[x]['summary'] = None
 
     # sql_create, sql_insert
-    table_name = "Info_hot_day"
     sc = ''''''
     sii = ""
     i = 0
@@ -214,21 +199,34 @@ def get_rownum_from_db(table_name):
     conn.close()
     return total[0]
 
+
 def main():
-    i = 0
-    num = 7
     getDate = get_date()
     getDate = datetime.datetime.strptime(getDate, "%Y-%m-%d").date()
-    while i < num:
-        L = ['时事','民生','财富','科技','创业','汽车','楼市','职场','教育','学术','政务','企业']
-#        L = ['企业']
-        for rank_name in L:
-            date = (getDate + datetime.timedelta(days=-i))
+    i = 0
+    num = 7
+    table_name = 'Info_hot_day'
+    rank_name_group = '资讯'
+    file_name = rank_name_group+'.txt'
+    L = ['时事','民生','财富','科技','创业','汽车','楼市','职场','教育','学术','政务','企业']
 
-            time.sleep(3)
-            content = get_content(rank_name,date)
-            print(content)
-            table_name = store_to_db(content)
+    # 创建文件
+    with open(file_name,'a+') as f:
+        f.close()
+    while i < num:
+        date = (getDate + datetime.timedelta(days=-i))
+        with open(file_name,'r+') as f:
+            s = f.read()
+            if str(date) in s:
+                print(str(date)+'日的 '+rank_name_group+' 数据已抓取')
+                f.close()
+            else:
+                for rank_name in L:
+                    time.sleep(3)
+                    content = get_content(rank_name_group,rank_name,date)
+                    store_to_db(content,table_name)
+                f.write(str(date)+'\n')
+                f.close()
         i += 1
 
     rownum = get_rownum_from_db(table_name)

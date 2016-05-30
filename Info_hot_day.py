@@ -211,11 +211,11 @@ def main():
     L = ['时事','民生','财富','科技','创业','汽车','楼市','职场','教育','学术','政务','企业']
 
     # 创建文件
-    with open(file_name,'a+') as f:
+    with open(file_name,'a+',encoding='utf-8') as f:
         f.close()
     while i < num:
         date = (getDate + datetime.timedelta(days=-i))
-        with open(file_name,'r+') as f:
+        with open(file_name,'r+',encoding='utf-8') as f:
             s = f.read()
             if str(date) in s:
                 print(str(date)+'日的 '+rank_name_group+' 数据已抓取')
